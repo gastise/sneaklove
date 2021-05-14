@@ -1,8 +1,13 @@
 const express = require("express");
 const router = express.Router();
+const Sneaker = require("../models/Sneaker");
 const User = require("../models/User");
 const Tag = require("../models/Tag");
 const bcrypt = require("bcrypt");
+const uploader = require("../config/cloudinary");
+const protectPrivateRoute = require("./../middlewares/protectPrivateRoute");
+const TagModel = require("../models/Tag");
+
 
 console.log(`\n\n
 -----------------------------
@@ -50,6 +55,14 @@ router.post("/signin", async (req, res, next) => {
   }
 });
 
+// SIGN OUT PROCESS
+
+router.get("/logout", (req, res, next) => {
+  req.session.destroy(function (err) {
+    res.redirect("/signin");
+  });
+});
+
 // SIGN UP PROCESS
 
 // GET = display the Sign up form
@@ -86,25 +99,70 @@ router.post("/signup", async (req, res, next) => {
 });
 
 
-// ADD A PRODUCT ROUTE
+// ADD A PRODUCT (SNEAKER)
 
-// GET = display the ADD PRODUCT(SNEAKER)
+// GET = submit a PRODUCT (SNEAKER)
 
-router.get("/prod-add", (req, res) => {
+router.get("/prod-add", protectPrivateRoute,async(req, res,next) => {
+  try {
+    const tags= await Tag.find()
+    console.log("this is tags label>>>",tags[0].label);
+    console.log("this is tags alone>>>",tags[0]);
+    res.render("products_add.hbs",{tags});
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST = submit a PRODUCT (SNEAKER)
+
+router.post("/prod-add", uploader.single("picture"), async (req, res, next) => {
+  const newSneaker = { ...req.body };
+  console.log(newSneaker);
+  if (!req.file) newSneaker.picture = undefined;
+  else newSneaker.picture = req.file.path;
+  try {
+    await Sneaker.create(newSneaker);
+    res.redirect("/sneakers/collection");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET = submit a PRODUCT (TAG)
+
+router.get("/tag-add", protectPrivateRoute,(req, res) => {
   res.render("products_add.hbs");
 });
 
+// POST = submit a PRODUCT (TAG)
 
+router.post("/tag-add", async (req, res, next) => {
+  const newTag = { ...req.body };
+  console.log(newTag);
+  try {
+    await Tag.create(newTag);
+    res.redirect("/prod-add");
+  } catch (err) {
+    next(err);
+  }
+});
 
-// TO DO MEXIGANG!!
+//DISPLAY PRODUCTS BY CATEGORY
 
 router.get("/sneakers/:cat", (req, res) => {
   res.render("products");
 });
 
+
+//ONE MORE TASK FOR THE MEXIGANG -_-
+
+//DISPLAY ONE PRODUCT BY ID
+
 router.get("/one-product/:id", (req, res) => {
-  res.render("baz");
+  res.render("sneakers/");
 });
 
+//UPDATE ONE PRODUCT BY ID
 
 module.exports = router;
