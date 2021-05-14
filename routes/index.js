@@ -8,7 +8,6 @@ const uploader = require("../config/cloudinary");
 const protectPrivateRoute = require("./../middlewares/protectPrivateRoute");
 const TagModel = require("../models/Tag");
 
-
 console.log(`\n\n
 -----------------------------
 -----------------------------
@@ -20,7 +19,6 @@ wax on / wax off !
 router.get("/", (req, res) => {
   res.render("index.hbs");
 });
-
 
 // SIGN IN PROCESS
 
@@ -98,17 +96,16 @@ router.post("/signup", async (req, res, next) => {
   }
 });
 
-
 // ADD A PRODUCT (SNEAKER)
 
 // GET = submit a PRODUCT (SNEAKER)
 
-router.get("/prod-add", protectPrivateRoute,async(req, res,next) => {
+router.get("/prod-add", protectPrivateRoute, async (req, res, next) => {
   try {
-    const tags= await Tag.find()
-    console.log("this is tags label>>>",tags[0].label);
-    console.log("this is tags alone>>>",tags[0]);
-    res.render("products_add.hbs",{tags});
+    const tags = await Tag.find();
+    console.log("this is tags label>>>", tags[0].label);
+    console.log("this is tags alone>>>", tags[0]);
+    res.render("products_add.hbs", { tags });
   } catch (err) {
     next(err);
   }
@@ -131,7 +128,7 @@ router.post("/prod-add", uploader.single("picture"), async (req, res, next) => {
 
 // GET = submit a PRODUCT (TAG)
 
-router.get("/tag-add", protectPrivateRoute,(req, res) => {
+router.get("/tag-add", (req, res) => {
   res.render("products_add.hbs");
 });
 
@@ -142,7 +139,60 @@ router.post("/tag-add", async (req, res, next) => {
   console.log(newTag);
   try {
     await Tag.create(newTag);
+    // res.render("products_add.hbs");
     res.redirect("/prod-add");
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DISPLAY ALL PRODUCTS IN THE MANAGE PRODUCT PAGE
+
+router.get("/prod-manage",protectPrivateRoute, async (req, res) => {
+  try {
+    const sneakers = await Sneaker.find();
+    res.render("products_manage", { sneakers });
+  } catch (err) {
+    next(err);
+  }
+});
+
+//UPDATE ONE PRODUCT BY ID
+
+// GET THE VIEW OF THE PRODUCT
+
+// GET - update one SNEAKER 
+
+router.get("/product-edit/:id", async (req, res, next) => {
+  try {
+    res.render("product_edit.hbs", {
+      sneaker: await Sneaker.findById(req.params.id).populate("tag"),
+      tags: await Tag.find(),
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST THE UPDATED SNEAKER
+router.post("/product-edit/:id", async (req, res, next) => {
+  try {
+    const sneakerToUpdate = { ...req.body };
+    await Sneaker.findByIdAndUpdate(req.params.id, sneakerToUpdate);
+    res.redirect("/prod-manage");
+  } catch (err) {
+    next(err);
+  }
+});
+
+
+
+//DELETE ONE PRODUCT BY ID (GET ROUTE ONLY)
+
+router.get("/product-delete/:id", async (req, res, next) => {
+  try {
+    await Sneaker.findByIdAndRemove(req.params.id);
+    res.redirect("/prod-manage");
   } catch (err) {
     next(err);
   }
@@ -154,15 +204,10 @@ router.get("/sneakers/:cat", (req, res) => {
   res.render("products");
 });
 
-
-//ONE MORE TASK FOR THE MEXIGANG -_-
-
 //DISPLAY ONE PRODUCT BY ID
 
 router.get("/one-product/:id", (req, res) => {
   res.render("sneakers/");
 });
-
-//UPDATE ONE PRODUCT BY ID
 
 module.exports = router;

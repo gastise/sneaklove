@@ -1,5 +1,5 @@
 <td class="table-division">
-  <div><img src="{{this.image}}" alt="img" class="table-image" /></div>
+  <div><img src="{{this.picture}}" alt="img" class="table-image" /></div>
 </td>
 <td class="table-division">
   <div>{{this.name}}</div>
@@ -11,8 +11,16 @@
   <div>${{this.price}}</div>
 </td>
 <td class="table-division">
-  <a href="/product-edit/{{this._id}}" data-id-sneaker="{{this._id}}" class="fa fa-edit table-icon"></a>
+  <a
+    href="/product-edit/{{this._id}}"
+    data-id-sneaker="{{this._id}}"
+    {{!-- class="fa fa-edit table-icon" --}}
+  >Edit</a>
 </td>
 <td class="table-division">
-  <span class="fa fa-trash table-icon" data-id-sneaker="{{this._id}}"  aria-hidden="true"></span>
+  <a
+    href="/product-delete/{{this.id}}"
+    {{!-- class="fa fa-trash table-icon" --}}
+    data-id-sneaker="{{this._id}}"
+  >Delete</a>
 </td>
